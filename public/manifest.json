@@ -1,0 +1,19 @@
+{
+  "name": "Protocolo V-Taper — Objetivo 5 Dic",
+  "short_name": "V-Taper 5Dic",
+  "description": "Tracker de entrenamiento de hipertrofia estética en V (4 días, superseries y sobrecarga progresiva).",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
