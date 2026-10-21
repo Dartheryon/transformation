@@ -15,6 +15,15 @@ import {
 } from '../data/workoutPlan';
 
 const STORAGE_KEYS = {
+  ACTIVE_LOGS: 'ultrad_active_logs_v1',
+  SESSION_HISTORY: 'ultrad_session_history_v1',
+  CREATINE_LOGS: 'ultrad_creatine_dates_v1',
+  VIDEO_OVERRIDES: 'ultrad_video_overrides_v1',
+  WEIGHT_UNIT: 'ultrad_weight_unit_v1',
+  SELECTED_DAY: 'ultrad_selected_day_v1',
+} as const;
+
+const LEGACY_STORAGE_KEYS = {
   ACTIVE_LOGS: 'vtaper_active_logs_v1',
   SESSION_HISTORY: 'vtaper_session_history_v1',
   CREATINE_LOGS: 'vtaper_creatine_dates_v1',
@@ -56,10 +65,12 @@ export function buildInitialActiveLogs(): ActiveDayLogsMap {
   return allDays;
 }
 
-function readFromStorage<T>(key: string, fallback: T): T {
+function readFromStorage<T>(key: string, fallback: T, legacyKey?: string): T {
   if (typeof window === 'undefined') return fallback;
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw =
+      window.localStorage.getItem(key) ??
+      (legacyKey ? window.localStorage.getItem(legacyKey) : null);
     if (!raw) return fallback;
     return JSON.parse(raw) as T;
   } catch {
@@ -134,12 +145,20 @@ export function calculateCreatineStreak(loggedDates: string[], today: Date = new
 
 export function useWorkoutTracker() {
   const [selectedDayId, setSelectedDayId] = useState<string>(() =>
-    readFromStorage<string>(STORAGE_KEYS.SELECTED_DAY, WORKOUT_PLAN[0].id)
+    readFromStorage<string>(
+      STORAGE_KEYS.SELECTED_DAY,
+      WORKOUT_PLAN[0].id,
+      LEGACY_STORAGE_KEYS.SELECTED_DAY
+    )
   );
 
   const [activeLogs, setActiveLogs] = useState<ActiveDayLogsMap>(() => {
     const initial = buildInitialActiveLogs();
-    const stored = readFromStorage<ActiveDayLogsMap | null>(STORAGE_KEYS.ACTIVE_LOGS, null);
+    const stored = readFromStorage<ActiveDayLogsMap | null>(
+      STORAGE_KEYS.ACTIVE_LOGS,
+      null,
+      LEGACY_STORAGE_KEYS.ACTIVE_LOGS
+    );
     if (!stored) return initial;
 
     // Merge stored logs with current plan schema to ensure all exercises and sets exist
@@ -160,19 +179,35 @@ export function useWorkoutTracker() {
   });
 
   const [sessionHistory, setSessionHistory] = useState<WorkoutSessionLog[]>(() =>
-    readFromStorage<WorkoutSessionLog[]>(STORAGE_KEYS.SESSION_HISTORY, [])
+    readFromStorage<WorkoutSessionLog[]>(
+      STORAGE_KEYS.SESSION_HISTORY,
+      [],
+      LEGACY_STORAGE_KEYS.SESSION_HISTORY
+    )
   );
 
   const [creatineDates, setCreatineDates] = useState<string[]>(() =>
-    readFromStorage<string[]>(STORAGE_KEYS.CREATINE_LOGS, [])
+    readFromStorage<string[]>(
+      STORAGE_KEYS.CREATINE_LOGS,
+      [],
+      LEGACY_STORAGE_KEYS.CREATINE_LOGS
+    )
   );
 
   const [videoOverrides, setVideoOverrides] = useState<Record<string, string>>(() =>
-    readFromStorage<Record<string, string>>(STORAGE_KEYS.VIDEO_OVERRIDES, {})
+    readFromStorage<Record<string, string>>(
+      STORAGE_KEYS.VIDEO_OVERRIDES,
+      {},
+      LEGACY_STORAGE_KEYS.VIDEO_OVERRIDES
+    )
   );
 
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(() =>
-    readFromStorage<WeightUnit>(STORAGE_KEYS.WEIGHT_UNIT, 'kg')
+    readFromStorage<WeightUnit>(
+      STORAGE_KEYS.WEIGHT_UNIT,
+      'kg',
+      LEGACY_STORAGE_KEYS.WEIGHT_UNIT
+    )
   );
 
   const [countdown, setCountdown] = useState<ProtocolCountdown>(() =>

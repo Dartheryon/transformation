@@ -1,7 +1,7 @@
 {
-  "name": "Protocolo Mutación Ultra D",
+  "name": "Ultra-D",
   "short_name": "Ultra-D",
-  "description": "Protocolo Mutación Ultra D — Tracker de hipertrofia, superseries y sobrecarga progresiva.",
+  "description": "Ultra-D — Tracker de hipertrofia, superseries y sobrecarga progresiva.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

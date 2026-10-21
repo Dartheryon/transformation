@@ -12,7 +12,7 @@ import {
 import { groupDayExercises } from '../App';
 import { formatSecondsMMSS } from '../components/RestTimer';
 
-describe('V-Taper Protocol Seed Data & Architecture Contract', () => {
+describe('Ultra-D Protocol Seed Data & Architecture Contract', () => {
   it('contains all 4 workout days and 25 total exercises', () => {
     expect(WORKOUT_PLAN).toHaveLength(4);
     expect(WORKOUT_PLAN.map((d) => d.dayNumber)).toEqual([1, 2, 3, 4]);
