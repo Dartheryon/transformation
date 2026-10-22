@@ -4,6 +4,14 @@ export type SupersetGroup = 'A' | 'B' | 'C';
 
 export type WeightUnit = 'kg' | 'lbs';
 
+export type ExerciseVariantType = 'machine' | 'dumbbell';
+
+export interface ExerciseVariant {
+  name: string;
+  cues: string;
+  videoUrl: string;
+}
+
 export interface Exercise {
   id: string;
   name: string;
@@ -14,6 +22,7 @@ export interface Exercise {
   restSeconds: number;             // 0 si es A1/B1/C1, 60-90 si es single o A2/B2/C2
   cues: string;                    // Nota biomecánica clave
   videoUrl: string;                // URL de embed de YouTube o búsqueda directa
+  dumbbellAlternative?: ExerciseVariant; // Variante con mancuernas si la máquina está ocupada
 }
 
 export interface WorkoutDay {

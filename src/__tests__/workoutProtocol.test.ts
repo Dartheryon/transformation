@@ -104,4 +104,16 @@ describe('Ultra-D Protocol Seed Data & Architecture Contract', () => {
     expect(formatSecondsMMSS(60)).toBe('01:00');
     expect(formatSecondsMMSS(0)).toBe('00:00');
   });
+
+  it('provides complete dumbbell alternatives for all 25 exercises with valid cues and video embeds', () => {
+    for (const day of WORKOUT_PLAN) {
+      for (const ex of day.exercises) {
+        expect(ex.dumbbellAlternative).toBeDefined();
+        const alt = ex.dumbbellAlternative!;
+        expect(alt.name.length).toBeGreaterThan(5);
+        expect(alt.cues.length).toBeGreaterThan(10);
+        expect(alt.videoUrl).toMatch(/^https:\/\/www\.youtube\.com\/embed\/[a-zA-Z0-9_-]{11}$/);
+      }
+    }
+  });
 });

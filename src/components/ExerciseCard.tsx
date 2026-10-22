@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ArrowDownRight,
   Check,
   Clock,
+  Dumbbell,
   Flame,
   History,
   Info,
   PlayCircle,
+  Repeat,
   Trophy,
 } from 'lucide-react';
 import type {
   Exercise,
+  ExerciseVariantType,
   PreviousSetReference,
   SetLog,
   WeightUnit,
@@ -30,6 +33,8 @@ interface ExerciseCardProps {
   onSetCompleted: (exercise: Exercise, setNumber: number) => void;
   onOpenVideo: (exercise: Exercise) => void;
   isInsideSuperset?: boolean;
+  activeVariant?: ExerciseVariantType;
+  onToggleVariant?: (exerciseId: string) => void;
 }
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({
@@ -42,7 +47,24 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   onSetCompleted,
   onOpenVideo,
   isInsideSuperset = false,
+  activeVariant = 'machine',
+  onToggleVariant,
 }) => {
+  const isDumbbell = activeVariant === 'dumbbell' && !!exercise.dumbbellAlternative;
+  const activeName = isDumbbell ? exercise.dumbbellAlternative!.name : exercise.name;
+  const activeCues = isDumbbell ? exercise.dumbbellAlternative!.cues : exercise.cues;
+  const activeVideoUrl = isDumbbell ? exercise.dumbbellAlternative!.videoUrl : exercise.videoUrl;
+
+  const currentActiveExercise: Exercise = useMemo(
+    () => ({
+      ...exercise,
+      name: activeName,
+      cues: activeCues,
+      videoUrl: activeVideoUrl,
+    }),
+    [exercise, activeName, activeCues, activeVideoUrl]
+  );
+
   const completedCount = sets.filter((s) => s.completed).length;
   const allCompleted = sets.length > 0 && completedCount === sets.length;
   const supersetTag = exercise.supersetGroup
@@ -64,7 +86,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     onUpdateSet(exercise.id, setItem.setNumber, patch);
 
     if (nextCompleted) {
-      onSetCompleted(exercise, setItem.setNumber);
+      onSetCompleted(currentActiveExercise, setItem.setNumber);
     }
   };
 
@@ -100,6 +122,17 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
               </span>
             )}
 
+            {isDumbbell ? (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/20 px-2.5 py-0.5 text-xs font-extrabold text-amber-300 border border-amber-500/40 animate-in fade-in">
+                <Dumbbell className="h-3.5 w-3.5 text-amber-400" />
+                Mancuernas
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-lg bg-zinc-800/80 px-2.5 py-0.5 text-xs font-medium text-zinc-400 border border-zinc-700">
+                Máquina / Guiado
+              </span>
+            )}
+
             <span className="inline-flex items-center gap-1 rounded-lg bg-zinc-950/90 px-2.5 py-0.5 text-xs font-semibold text-zinc-300 border border-zinc-800">
               {exercise.targetSets} series × {exercise.targetReps} reps
             </span>
@@ -127,18 +160,18 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
           </div>
 
           <h3 className="text-base sm:text-lg font-bold leading-snug text-zinc-100">
-            {exercise.name}
+            {activeName}
           </h3>
 
           {/* Biomechanical Cue Preview */}
           <p className="flex items-start gap-1.5 text-xs leading-relaxed text-zinc-400">
             <Info className="h-3.5 w-3.5 shrink-0 text-emerald-400 mt-0.5" />
-            <span>{exercise.cues}</span>
+            <span>{activeCues}</span>
           </p>
         </div>
 
-        {/* Action Button: Ver Técnica (>= 44px touch target) */}
-        <div className="flex items-center justify-between sm:justify-end gap-2 pt-1 sm:pt-0">
+        {/* Action Buttons: Alternar Mancuernas + Ver Técnica (>= 44px touch target) */}
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 pt-1 sm:pt-0">
           <div className="text-xs font-semibold text-zinc-400 sm:hidden">
             Progreso:{' '}
             <span className={allCompleted ? 'text-emerald-400 font-bold' : 'text-zinc-200'}>
@@ -146,9 +179,35 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             </span>
           </div>
 
+          {exercise.dumbbellAlternative && onToggleVariant && (
+            <button
+              type="button"
+              onClick={() => onToggleVariant(exercise.id)}
+              title={
+                isDumbbell
+                  ? 'Volver a la versión original de máquina'
+                  : 'Alternar a variante con mancuernas si la máquina está ocupada'
+              }
+              aria-label={
+                isDumbbell
+                  ? 'Volver a máquina'
+                  : 'Cambiar a variante con mancuernas'
+              }
+              className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-95 ${
+                isDumbbell
+                  ? 'border-amber-500/50 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 shadow-sm shadow-amber-950/20'
+                  : 'border-zinc-700/80 bg-zinc-950 text-zinc-300 hover:border-amber-500/40 hover:bg-zinc-800 hover:text-amber-300'
+              }`}
+            >
+              <Dumbbell className="h-4 w-4 text-amber-400" />
+              <span>{isDumbbell ? 'Volver a Máquina' : 'Usar Mancuerna'}</span>
+              <Repeat className="h-3 w-3 opacity-60 ml-0.5" />
+            </button>
+          )}
+
           <button
             type="button"
-            onClick={() => onOpenVideo(exercise)}
+            onClick={() => onOpenVideo(currentActiveExercise)}
             className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl border border-zinc-700/80 bg-zinc-950 px-3.5 py-2 text-xs font-bold text-zinc-200 transition hover:border-emerald-500/50 hover:bg-zinc-800 hover:text-emerald-300 active:scale-95"
           >
             <PlayCircle className="h-4 w-4 text-emerald-400" />

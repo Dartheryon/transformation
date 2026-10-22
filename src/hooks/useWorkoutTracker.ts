@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type {
   Exercise,
+  ExerciseVariantType,
   PreviousSetReference,
   ProtocolCountdown,
   SetLog,
@@ -21,6 +22,7 @@ const STORAGE_KEYS = {
   VIDEO_OVERRIDES: 'ultrad_video_overrides_v1',
   WEIGHT_UNIT: 'ultrad_weight_unit_v1',
   SELECTED_DAY: 'ultrad_selected_day_v1',
+  SELECTED_VARIANTS: 'ultrad_selected_variants_v1',
 } as const;
 
 const LEGACY_STORAGE_KEYS = {
@@ -210,6 +212,13 @@ export function useWorkoutTracker() {
     )
   );
 
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, ExerciseVariantType>>(() =>
+    readFromStorage<Record<string, ExerciseVariantType>>(
+      STORAGE_KEYS.SELECTED_VARIANTS,
+      {}
+    )
+  );
+
   const [countdown, setCountdown] = useState<ProtocolCountdown>(() =>
     calculateProtocolCountdown()
   );
@@ -238,6 +247,10 @@ export function useWorkoutTracker() {
   useEffect(() => {
     writeToStorage(STORAGE_KEYS.WEIGHT_UNIT, weightUnit);
   }, [weightUnit]);
+
+  useEffect(() => {
+    writeToStorage(STORAGE_KEYS.SELECTED_VARIANTS, selectedVariants);
+  }, [selectedVariants]);
 
   // Real-time countdown ticker
   useEffect(() => {
@@ -397,11 +410,32 @@ export function useWorkoutTracker() {
   );
 
   const getExerciseVideoUrl = useCallback(
-    (exercise: Exercise): string => {
+    (exercise: Exercise, variant: ExerciseVariantType = 'machine'): string => {
       const override = videoOverrides[exercise.id];
-      return override ? normalizeYouTubeEmbedUrl(override) : exercise.videoUrl;
+      if (override) return normalizeYouTubeEmbedUrl(override);
+      if (variant === 'dumbbell' && exercise.dumbbellAlternative) {
+        return normalizeYouTubeEmbedUrl(exercise.dumbbellAlternative.videoUrl);
+      }
+      return exercise.videoUrl;
     },
     [videoOverrides]
+  );
+
+  const toggleExerciseVariant = useCallback((exerciseId: string) => {
+    setSelectedVariants((prev) => ({
+      ...prev,
+      [exerciseId]: prev[exerciseId] === 'dumbbell' ? 'machine' : 'dumbbell',
+    }));
+  }, []);
+
+  const setExerciseVariant = useCallback(
+    (exerciseId: string, variant: ExerciseVariantType) => {
+      setSelectedVariants((prev) => ({
+        ...prev,
+        [exerciseId]: variant,
+      }));
+    },
+    []
   );
 
   const setCustomVideoUrl = useCallback((exerciseId: string, rawUrl: string) => {
@@ -446,6 +480,9 @@ export function useWorkoutTracker() {
     videoOverrides,
     weightUnit,
     toggleWeightUnit,
+    selectedVariants,
+    toggleExerciseVariant,
+    setExerciseVariant,
     countdown,
   };
 }

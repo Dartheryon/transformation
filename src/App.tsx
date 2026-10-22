@@ -85,6 +85,8 @@ export function App() {
     videoOverrides,
     weightUnit,
     toggleWeightUnit,
+    selectedVariants,
+    toggleExerciseVariant,
     countdown,
   } = useWorkoutTracker();
 
@@ -488,6 +490,8 @@ export function App() {
                       }
                       onSetCompleted={handleSetCompleted}
                       onOpenVideo={(exercise) => setVideoModalExercise(exercise)}
+                      activeVariant={selectedVariants[ex.id] ?? 'machine'}
+                      onToggleVariant={toggleExerciseVariant}
                     />
                   );
                 }
@@ -542,6 +546,8 @@ export function App() {
                             onSetCompleted={handleSetCompleted}
                             onOpenVideo={(exercise) => setVideoModalExercise(exercise)}
                             isInsideSuperset
+                            activeVariant={selectedVariants[ex.id] ?? 'machine'}
+                            onToggleVariant={toggleExerciseVariant}
                           />
                         </React.Fragment>
                       ))}
@@ -783,7 +789,12 @@ export function App() {
       <VideoModal
         exercise={videoModalExercise}
         currentVideoUrl={
-          videoModalExercise ? getExerciseVideoUrl(videoModalExercise) : ''
+          videoModalExercise
+            ? getExerciseVideoUrl(
+                videoModalExercise,
+                selectedVariants[videoModalExercise.id] ?? 'machine'
+              )
+            : ''
         }
         hasCustomOverride={
           videoModalExercise ? Boolean(videoOverrides[videoModalExercise.id]) : false
